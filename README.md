@@ -1,18 +1,7 @@
-# Welcome to React Router!
+# Movie Seat Tracker
 
-A modern, production-ready template for building full-stack React applications using React Router.
-
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
-
-## Features
-
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+A dedicated web app to help keep track of your favorite movie seats. Built with React Router.
+See here for [inspiration](https://www.reddit.com/r/RegalUnlimited/comments/1kkdm2a/am_i_weird_for_keeping_notes_on_the_seats/).
 
 ## Getting Started
 
@@ -77,10 +66,6 @@ Make sure to deploy the output of `npm run build`
 │   ├── client/    # Static assets
 │   └── server/    # Server-side code
 ```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
 
 ---
 
