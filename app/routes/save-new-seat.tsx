@@ -10,8 +10,11 @@ import {
   FieldSet,
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
+import { useNavigate } from "react-router";
 
 export default function NewSeat() {
+  const navigate = useNavigate();
+
   return (
     <div className="max-w-80 mx-auto grid gap-6 pt-16 pb-4">
       {/* seat row, seat number, seat description */}
@@ -46,7 +49,11 @@ export default function NewSeat() {
           </FieldSet>
           <Field orientation="horizontal">
             <Button type="submit">Submit</Button>
-            <Button variant="outline" type="button">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => navigate(-1)}
+            >
               Cancel
             </Button>
           </Field>

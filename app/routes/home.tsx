@@ -1,7 +1,9 @@
 import type { Route } from "./+types/home";
 import { Link } from "react-router";
+import { Button } from "~/components/ui/button";
 import { db } from "~/db/db";
 import { auditorium, theater } from "~/db/schema";
+import { PlusIcon } from "lucide-react";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -24,7 +26,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       </div>
       <h2 className="font-bold text-3xl">Your theaters:</h2>
 
-      {loaderData.map(theater => {
+      {loaderData.map((theater) => {
         return (
           <Link
             key={theater.id}
@@ -36,7 +38,16 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         );
       })}
 
-      <Link to={"save-new-seat"}>Add new seat</Link>
+      <Button
+        asChild
+        size="sm"
+        variant="outline"
+        className="items-center justify-start grow-0 shrink-0 max-w-min"
+      >
+        <Link to={"save-new-seat"}>
+          <PlusIcon /> New seat
+        </Link>
+      </Button>
     </main>
   );
 }
