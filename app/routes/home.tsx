@@ -1,7 +1,7 @@
 import type { Route } from "./+types/home";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
-import { db } from "~/db/db";
+import { db } from "~/db/db.server";
 import { auditorium, theater } from "~/db/schema";
 import { PlusIcon } from "lucide-react";
 
@@ -26,7 +26,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       </div>
       <h2 className="font-bold text-3xl">Your theaters:</h2>
 
-      {loaderData.map((theater) => {
+      {loaderData.map(theater => {
         return (
           <Link
             key={theater.id}

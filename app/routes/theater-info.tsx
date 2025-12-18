@@ -1,4 +1,4 @@
-import { db } from "~/db/db";
+import { db } from "~/db/db.server";
 import { theater, auditorium, seat } from "~/db/schema";
 import { eq, and, isNotNull } from "drizzle-orm";
 import type { Route } from "./+types/theater-info";
@@ -16,7 +16,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     .leftJoin(seat, eq(auditorium.id, seat.auditoriumId))
     .where(and(eq(theater.id, theaterId), isNotNull(seat.id)));
 
-  const savedSeats = query.map((record) => {
+  const savedSeats = query.map(record => {
     return {
       seatId: record.seat?.id,
       theaterName: record.theater.theaterName,
@@ -57,7 +57,7 @@ export default function TheaterInfo({ loaderData }: Route.ComponentProps) {
       </div>
 
       <div className="grid gap-6">
-        {savedSeats.map((seatInfo) => {
+        {savedSeats.map(seatInfo => {
           return (
             <div key={seatInfo.seatId} className="bg-slate-100 rounded-xl">
               <div className="flex justify-between p-6">

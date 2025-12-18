@@ -1,7 +1,7 @@
 import { Form, useNavigate } from "react-router";
 import type { Route } from "./+types/save-new-seat";
 import { seat, type InsertSeat } from "~/db/schema";
-import { db } from "~/db/db";
+// import { db } from "~/db/db.server";
 import { Button } from "~/components/ui/button";
 import {
   Field,
@@ -40,12 +40,12 @@ export default function NewSeat() {
                   placeholder="Theater Name"
                   type="text"
                   minLength={5}
-                  onBlur={(e) => {
+                  onBlur={e => {
                     const isValid = e.target.value.trim().length > 3;
                     e.target.setCustomValidity(
                       isValid
                         ? ""
-                        : "Theater name must be at least 3 non-whitespace characters",
+                        : "Theater name must be at least 3 non-whitespace characters"
                     );
                   }}
                   required
