@@ -3,7 +3,7 @@ import { theater, auditorium, seat } from "~/db/schema";
 import { eq, and, isNotNull } from "drizzle-orm";
 import type { Route } from "./+types/theater-info";
 import { Button } from "~/components/ui/button";
-import { useNavigate } from "react-router";
+import { Link } from "react-router";
 import { ArrowLeftIcon } from "lucide-react";
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -31,25 +31,24 @@ export async function loader({ params }: Route.LoaderArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  // console.log(savedSeats);
-
   return { savedSeats };
 }
 
 export default function TheaterInfo({ loaderData }: Route.ComponentProps) {
   const { savedSeats } = loaderData;
-  const navigate = useNavigate();
 
   return (
     <div className="max-w-80 mx-auto pt-16 pb-4">
       <div className="flex items-center gap-6 mb-6">
         <Button
+          asChild
           size="icon"
           type="button"
           className="rounded-full hover:cursor-pointer"
-          onClick={() => navigate(-1)}
         >
-          <ArrowLeftIcon />
+          <Link to={`/`}>
+            <ArrowLeftIcon />
+          </Link>
         </Button>
         <p className="text-2xl font-bold text-pretty">
           My saved seats at <br /> {savedSeats[0].theaterName}

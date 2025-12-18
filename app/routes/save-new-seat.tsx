@@ -1,8 +1,10 @@
-import { Form, useNavigate } from "react-router";
+import { Form, redirect, useNavigate } from "react-router";
 import type { Route } from "./+types/save-new-seat";
-import { seat, type InsertSeat } from "~/db/schema";
-// import { db } from "~/db/db.server";
+import { theater, auditorium, seat, type InsertSeat } from "~/db/schema";
+import { db } from "~/db/db.server";
+import { eq, and } from "drizzle-orm";
 import { Button } from "~/components/ui/button";
+import { z } from "zod";
 import {
   Field,
   FieldGroup,
@@ -13,11 +15,64 @@ import {
 import { Textarea } from "~/components/ui/textarea";
 import { Input } from "~/components/ui/input";
 
+const saveSeatSchema = z.object({
+  "theater-name": z.string().trim().min(3, "Theater name too short"),
+  "auditorium-number": z.coerce.number().min(1).max(30),
+  "seat-row": z.string().trim().length(1),
+  "seat-number": z.coerce.number().min(1).max(35),
+  "seat-description": z.string().trim().max(300, "Description too long"),
+});
+
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
-  const newSeat = Object.fromEntries(formData);
-  // const insertSeat = db.insert(seat).values(newSeat)
-  console.log(newSeat);
+  const zodResult = saveSeatSchema.safeParse(Object.fromEntries(formData));
+
+  let theaterExists = await db
+    .select({ theaterId: theater.id })
+    .from(theater)
+    .where(eq(theater.theaterName, `${zodResult.data?.["theater-name"]}`));
+
+  if (!(theaterExists.length > 0)) {
+    theaterExists = await db
+      .insert(theater)
+      .values({ theaterName: `${zodResult.data?.["theater-name"]}` })
+      .returning({ theaterId: theater.id });
+  }
+
+  let auditoriumExists = await db
+    .select({ auditoriumId: auditorium.id })
+    .from(auditorium)
+    .where(
+      and(
+        eq(auditorium.theaterId, theaterExists[0].theaterId),
+        eq(
+          auditorium.number,
+          Number(`${zodResult.data?.["auditorium-number"]}`)
+        )
+      )
+    );
+
+  if (!(auditoriumExists.length > 0)) {
+    auditoriumExists = await db
+      .insert(auditorium)
+      .values({
+        theaterId: theaterExists[0].theaterId,
+        number: Number(`${zodResult.data?.["auditorium-number"]}`),
+        type: "digital",
+      })
+      .returning({ auditoriumId: auditorium.id });
+  }
+
+  const newSeat = {
+    auditoriumId: auditoriumExists[0].auditoriumId,
+    row: `${zodResult.data?.["seat-row"]}`,
+    seatNumber: Number(`${zodResult.data?.["seat-number"]}`),
+    description: `${zodResult.data?.["seat-description"]}`,
+  };
+
+  await db.insert(seat).values(newSeat);
+
+  return redirect(`/theaters/${theaterExists[0].theaterId}/my-seats`);
 }
 
 export default function NewSeat() {
@@ -72,7 +127,7 @@ export default function NewSeat() {
                   name="seat-row"
                   required
                   type="text"
-                  pattern="[/a-z/i]"
+                  pattern="[A-Za-z]"
                   maxLength={1}
                 />
               </Field>
