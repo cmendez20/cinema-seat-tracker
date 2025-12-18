@@ -13,7 +13,6 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export async function loader() {
-  // console.log(await db.select().from(theater));
   const data = await db.select().from(theater);
   return data;
 }
