@@ -11,6 +11,7 @@ export const seat = pgTable("seat", {
   theaterId: integer("theater_id")
     .notNull()
     .references(() => theater.id, { onDelete: "cascade" }),
+  auditoriumNumber: integer("auditorium_number").notNull(),
   screenType: text("screen_type").notNull().default("Digital"),
   row: text("row").notNull(),
   seatNumber: integer("seat_number").notNull(),
