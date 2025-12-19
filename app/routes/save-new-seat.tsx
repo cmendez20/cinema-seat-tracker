@@ -1,8 +1,8 @@
 import { Form, redirect, useNavigate } from "react-router";
 import type { Route } from "./+types/save-new-seat";
-import { theater, auditorium, seat, type InsertSeat } from "~/db/schema";
+import { theater, seat } from "~/db/schema";
 import { db } from "~/db/db.server";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Button } from "~/components/ui/button";
 import { z } from "zod";
 import {
@@ -18,6 +18,7 @@ import { Input } from "~/components/ui/input";
 const saveSeatSchema = z.object({
   "theater-name": z.string().trim().min(3, "Theater name too short"),
   "auditorium-number": z.coerce.number().min(1).max(30),
+  "screen-type": z.string().trim().max(100),
   "seat-row": z.string().trim().length(1),
   "seat-number": z.coerce.number().min(1).max(35),
   "seat-description": z.string().trim().max(300, "Description too long"),
@@ -26,6 +27,11 @@ const saveSeatSchema = z.object({
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
   const zodResult = saveSeatSchema.safeParse(Object.fromEntries(formData));
+
+  if (zodResult.error) {
+    console.error(zodResult.error.message);
+    return;
+  }
 
   let theaterExists = await db
     .select({ theaterId: theater.id })
@@ -39,35 +45,13 @@ export async function action({ request }: Route.ActionArgs) {
       .returning({ theaterId: theater.id });
   }
 
-  let auditoriumExists = await db
-    .select({ auditoriumId: auditorium.id })
-    .from(auditorium)
-    .where(
-      and(
-        eq(auditorium.theaterId, theaterExists[0].theaterId),
-        eq(
-          auditorium.number,
-          Number(`${zodResult.data?.["auditorium-number"]}`)
-        )
-      )
-    );
-
-  if (!(auditoriumExists.length > 0)) {
-    auditoriumExists = await db
-      .insert(auditorium)
-      .values({
-        theaterId: theaterExists[0].theaterId,
-        number: Number(`${zodResult.data?.["auditorium-number"]}`),
-        type: "digital",
-      })
-      .returning({ auditoriumId: auditorium.id });
-  }
-
   const newSeat = {
-    auditoriumId: auditoriumExists[0].auditoriumId,
-    row: `${zodResult.data?.["seat-row"]}`,
-    seatNumber: Number(`${zodResult.data?.["seat-number"]}`),
-    description: `${zodResult.data?.["seat-description"]}`,
+    theaterId: theaterExists[0].theaterId,
+    auditoriumNumber: zodResult.data?.["auditorium-number"],
+    screenType: zodResult.data?.["screen-type"],
+    row: zodResult.data?.["seat-row"],
+    seatNumber: zodResult.data?.["seat-number"],
+    description: zodResult.data?.["seat-description"],
   };
 
   await db.insert(seat).values(newSeat);
@@ -95,16 +79,18 @@ export default function NewSeat() {
                   placeholder="Theater Name"
                   type="text"
                   minLength={5}
-                  onBlur={e => {
+                  onBlur={(e) => {
                     const isValid = e.target.value.trim().length > 3;
                     e.target.setCustomValidity(
                       isValid
                         ? ""
-                        : "Theater name must be at least 3 non-whitespace characters"
+                        : "Theater name must be at least 3 non-whitespace characters",
                     );
                   }}
                   required
                 />
+              </Field>
+              <Field>
                 <FieldLabel htmlFor="auditoriumNumber">
                   Auditorium Number
                 </FieldLabel>
@@ -117,6 +103,15 @@ export default function NewSeat() {
                   min={1}
                   max={30}
                   required
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="screenType">Screen Type</FieldLabel>
+                <Input
+                  id="screenType"
+                  placeholder="IMAX, Dolby, Laser, Digital, etc."
+                  name="screen-type"
+                  type="text"
                 />
               </Field>
               <Field>

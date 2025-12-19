@@ -1,5 +1,5 @@
 import { db } from "~/db/db.server";
-import { theater, auditorium, seat } from "~/db/schema";
+import { theater, seat } from "~/db/schema";
 import { eq, and, isNotNull } from "drizzle-orm";
 import type { Route } from "./+types/theater-info";
 import { Button } from "~/components/ui/button";
@@ -12,18 +12,17 @@ export async function loader({ params }: Route.LoaderArgs) {
   let query = await db
     .select()
     .from(theater)
-    .leftJoin(auditorium, eq(theater.id, auditorium.theaterId))
-    .leftJoin(seat, eq(auditorium.id, seat.auditoriumId))
+    .innerJoin(seat, eq(theater.id, seat.theaterId))
     .where(and(eq(theater.id, theaterId), isNotNull(seat.id)));
 
-  const savedSeats = query.map(record => {
+  const savedSeats = query.map((record) => {
     return {
-      seatId: record.seat?.id,
+      seatId: record.seat.id,
       theaterName: record.theater.theaterName,
-      auditoriumNumber: record.auditorium?.number,
-      seatRow: record.seat?.row,
-      seatNumber: record.seat?.seatNumber,
-      seatDescription: record.seat?.description,
+      auditoriumNumber: record.seat.auditoriumNumber,
+      seatRow: record.seat.row,
+      seatNumber: record.seat.seatNumber,
+      seatDescription: record.seat.description,
     };
   });
 
@@ -56,7 +55,7 @@ export default function TheaterInfo({ loaderData }: Route.ComponentProps) {
       </div>
 
       <div className="grid gap-6">
-        {savedSeats.map(seatInfo => {
+        {savedSeats.map((seatInfo) => {
           return (
             <div key={seatInfo.seatId} className="bg-slate-100 rounded-xl">
               <div className="flex justify-between p-6">
