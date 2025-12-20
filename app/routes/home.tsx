@@ -1,9 +1,11 @@
 import type { Route } from "./+types/home";
-import { Link } from "react-router";
+import { Form, Link, redirect } from "react-router";
 import { Button } from "~/components/ui/button";
 import { db } from "~/db/db.server";
 import { theater } from "~/db/schema";
 import { PlusIcon } from "lucide-react";
+import { Input } from "~/components/ui/input";
+import { auth } from "~/lib/auth.server";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -12,21 +14,64 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+export async function action({ request }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const email = formData.get("email");
+  const step = formData.get("step");
+  const otp = formData.get("otp");
+
+  if (step === "email") {
+    await auth.api.sendVerificationOTP({
+      body: {
+        email: email as string,
+        type: "sign-in",
+      },
+    });
+
+    return { step: "otp-step" };
+  }
+
+  const result = await auth.api.signInEmailOTP({
+    returnHeaders: true,
+    body: {
+      email: email as string,
+      otp: otp as string,
+    },
+  });
+
+  console.log(result);
+
+  return redirect("/dashboard", { headers: result.headers });
+}
+
 export async function loader() {
   const data = await db.select().from(theater);
   return data;
 }
 
-export default function Home({ loaderData }: Route.ComponentProps) {
+export default function Home({ loaderData, actionData }: Route.ComponentProps) {
+  const step = actionData?.step || "email";
+
   return (
     <main className="max-w-80 mx-auto grid gap-6 pt-16 pb-4">
       <div>
         <h1 className="text-5xl font-black">Movie Seat Tracker</h1>
       </div>
+      <div className="p-6 flex-1 flex flex-col justify-center items-center h-screen">
+        <h1 className="text-xl font-semibold mb-6">Login Form</h1>
+        <Form method="post" className="w-full max-w-sm">
+          <input type="hidden" value={step} name="step" />
+          <Input name="email" placeholder="Enter your Email" />
+          {step === "otp-step" && (
+            <Input name="otp" placeholder="Enter your OTP" />
+          )}
+          <Button type="submit" className="w-full mt-4">
+            Submit
+          </Button>
+        </Form>
+      </div>
       <h2 className="font-bold text-3xl">Your theaters:</h2>
-
       {!(loaderData.length > 0) && <p>No theaters saved yet</p>}
-
       {loaderData.map((theater) => {
         return (
           <Link
@@ -38,7 +83,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           </Link>
         );
       })}
-
       <Button
         asChild
         size="sm"

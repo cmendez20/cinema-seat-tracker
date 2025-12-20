@@ -4,4 +4,5 @@ export default [
   index("routes/home.tsx"),
   route("save-new-seat", "routes/save-new-seat.tsx"),
   route("theaters/:theaterId/my-seats", "routes/theater-info.tsx"),
+  route("dashboard", "routes/dashboard.tsx"),
 ] satisfies RouteConfig;
