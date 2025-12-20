@@ -83,6 +83,7 @@ export const verification = pgTable(
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  savedSeats: many(seat),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -107,6 +108,9 @@ export const theater = pgTable("theater", {
 
 export const seat = pgTable("seat", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
   theaterId: integer("theater_id")
     .notNull()
     .references(() => theater.id, { onDelete: "cascade" }),
@@ -117,6 +121,17 @@ export const seat = pgTable("seat", {
   description: text("description").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+export const seatRelations = relations(seat, ({ one }) => ({
+  theater: one(theater, {
+    fields: [seat.theaterId],
+    references: [theater.id],
+  }),
+  user: one(user, {
+    fields: [seat.userId],
+    references: [user.id],
+  }),
+}));
 
 // Inferred types
 export type InsertTheater = typeof theater.$inferInsert;
