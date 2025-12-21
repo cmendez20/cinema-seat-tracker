@@ -1,19 +1,34 @@
-import { db } from "~/db/db.server";
-import { theater, seat } from "~/db/schema";
-import { eq, and, isNotNull } from "drizzle-orm";
 import type { Route } from "./+types/theater-info";
-import { Button } from "~/components/ui/button";
-import { Link } from "react-router";
+import { Link, redirect } from "react-router";
+
+import { and, eq } from "drizzle-orm";
 import { ArrowLeftIcon } from "lucide-react";
 
-export async function loader({ params }: Route.LoaderArgs) {
+import { Button } from "~/components/ui/button";
+import { db } from "~/db/db.server";
+import { seat, theater } from "~/db/schema";
+import { auth } from "~/lib/auth.server";
+
+export async function loader({ params, request }: Route.LoaderArgs) {
+  const session = await auth.api.getSession({ headers: request.headers });
+
+  if (!session) return redirect("/");
+
   const theaterId = Number(params.theaterId);
 
-  let query = await db
+  if (Number.isNaN(theaterId)) {
+    throw new Response("Not Found", { status: 404 });
+  }
+
+  const query = await db
     .select()
     .from(theater)
     .innerJoin(seat, eq(theater.id, seat.theaterId))
-    .where(and(eq(theater.id, theaterId), isNotNull(seat.id)));
+    .where(and(eq(theater.id, theaterId), eq(seat.userId, session.user.id)));
+
+  if (query.length === 0) {
+    throw new Response("Not Found", { status: 404 });
+  }
 
   const savedSeats = query.map((record) => {
     return {
@@ -25,10 +40,6 @@ export async function loader({ params }: Route.LoaderArgs) {
       seatDescription: record.seat.description,
     };
   });
-
-  if (!query) {
-    throw new Response("Not Found", { status: 404 });
-  }
 
   return { savedSeats };
 }
@@ -45,7 +56,7 @@ export default function TheaterInfo({ loaderData }: Route.ComponentProps) {
           type="button"
           className="rounded-full hover:cursor-pointer"
         >
-          <Link to={`/`}>
+          <Link to="/dashboard">
             <ArrowLeftIcon />
           </Link>
         </Button>
