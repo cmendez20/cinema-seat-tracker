@@ -27,6 +27,14 @@ const saveSeatSchema = z.object({
   "seat-description": z.string().trim().max(300, "Description too long"),
 });
 
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await auth.api.getSession({ headers: request.headers });
+
+  if (!session) return redirect("/");
+
+  return {};
+}
+
 export async function action({ request }: Route.ActionArgs) {
   const session = await auth.api.getSession({ headers: request.headers });
 
