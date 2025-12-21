@@ -1,6 +1,4 @@
-import type { Route } from "./+types/home";
 import { Form, Link, redirect } from "react-router";
-
 import { Button } from "~/components/ui/button";
 import {
   Field,
@@ -10,43 +8,29 @@ import {
   FieldSet,
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
+import type { Route } from "./+types/new-user";
 import { auth } from "~/lib/auth.server";
-
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "Movie Seat Tracker" },
-    { name: "description", content: "Track your seats!" },
-  ];
-}
 
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
+  const name = formData.get("name");
   const email = formData.get("email");
   const password = formData.get("password");
 
-  const data = await auth.api.signInEmail({
+  const data = await auth.api.signUpEmail({
+    returnHeaders: true,
     body: {
+      name: name as string, // required
       email: email as string, // required
       password: password as string, // required
-      rememberMe: true,
-      callbackURL: "/dashboard",
+      callbackURL: "/",
     },
-    // headers: request.headers,
-    asResponse: true,
   });
 
-  return redirect("/dashboard");
+  return redirect("/");
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const session = await auth.api.getSession({ headers: request.headers });
-
-  if (session) return redirect("/dashboard");
-
-  return {};
-}
-
-export default function Home({ actionData }: Route.ComponentProps) {
+export default function NewUser() {
   return (
     <main className="max-w-80 mx-auto grid pt-16 pb-4">
       <h1 className="text-5xl font-black text-center mb-7">
@@ -58,16 +42,26 @@ export default function Home({ actionData }: Route.ComponentProps) {
           <FieldGroup>
             <FieldSet>
               <FieldLegend className="text-center mb-7">
-                Sign in to view your saved seats
+                Create a new account
               </FieldLegend>
               <FieldGroup>
                 <Field>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                  <FieldLabel htmlFor="name">Name</FieldLabel>
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="Name"
+                    required
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="email">Email Address</FieldLabel>
                   <Input
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="Email Address"
                     required
                   />
                 </Field>
@@ -77,14 +71,19 @@ export default function Home({ actionData }: Route.ComponentProps) {
                     id="password"
                     name="password"
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder="Password"
                     required
                   />
                 </Field>
                 <Button type="submit">Continue</Button>
-                <Button variant="link" asChild>
-                  <Link to="new-user">Create an account</Link>
-                </Button>
+                <div>
+                  <span className="font-semibold text-sm">
+                    Already have an account?
+                  </span>
+                  <Button variant="link" asChild>
+                    <Link to="/">Sign in</Link>
+                  </Button>
+                </div>
               </FieldGroup>
             </FieldSet>
           </FieldGroup>
