@@ -1,10 +1,10 @@
 import { Form, redirect, useNavigate } from "react-router";
 import type { Route } from "./+types/save-new-seat";
-import { theater, seat } from "~/db/schema";
-import { db } from "~/db/db.server";
+
 import { eq } from "drizzle-orm";
-import { Button } from "~/components/ui/button";
 import { z } from "zod";
+
+import { Button } from "~/components/ui/button";
 import {
   Field,
   FieldGroup,
@@ -12,8 +12,11 @@ import {
   FieldLegend,
   FieldSet,
 } from "~/components/ui/field";
-import { Textarea } from "~/components/ui/textarea";
 import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
+import { db } from "~/db/db.server";
+import { seat, theater } from "~/db/schema";
+import { auth } from "~/lib/auth.server";
 
 const saveSeatSchema = z.object({
   "theater-name": z.string().trim().min(3, "Theater name too short"),
@@ -25,6 +28,10 @@ const saveSeatSchema = z.object({
 });
 
 export async function action({ request }: Route.ActionArgs) {
+  const session = await auth.api.getSession({ headers: request.headers });
+
+  if (!session) return redirect("/");
+
   const formData = await request.formData();
   const zodResult = saveSeatSchema.safeParse(Object.fromEntries(formData));
 
@@ -46,6 +53,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const newSeat = {
+    userId: session.user.id,
     theaterId: theaterExists[0].theaterId,
     auditoriumNumber: zodResult.data?.["auditorium-number"],
     screenType: zodResult.data?.["screen-type"],
