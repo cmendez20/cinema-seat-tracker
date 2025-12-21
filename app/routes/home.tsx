@@ -55,10 +55,10 @@ export default function Home({ actionData }: Route.ComponentProps) {
 
   return (
     <main className="max-w-80 mx-auto grid gap-6 pt-16 pb-4">
-      <h1 className="text-5xl font-black">Movie Seat Tracker</h1>
+      <h1 className="text-5xl font-black text-center">Movie Seat Tracker</h1>
 
-      <div className="p-6 flex flex-col justify-center items-center">
-        <h2 className="text-xl font-semibold mb-6">Login</h2>
+      <div className="p-6 flex flex-col gap-3 justify-center items-center">
+        <h2 className="text-xl font-semibold">Login</h2>
         <Form method="post" className="w-full max-w-sm grid gap-3">
           <input type="hidden" value={step} name="step" />
           <Input name="email" placeholder="Enter your Email" required />
