@@ -1,5 +1,5 @@
 import type { Route } from "./+types/dashboard";
-import { Link, redirect } from "react-router";
+import { Form, Link, redirect } from "react-router";
 
 import { eq } from "drizzle-orm";
 import { PlusIcon } from "lucide-react";
@@ -8,6 +8,21 @@ import { Button } from "~/components/ui/button";
 import { db } from "~/db/db.server";
 import { seat, theater } from "~/db/schema";
 import { auth } from "~/lib/auth.server";
+
+export async function action({ request }: Route.ActionArgs) {
+  const response = await auth.api.signOut({
+    headers: request.headers,
+    asResponse: true,
+  });
+
+  if (!response.ok) {
+    return response;
+  }
+
+  return redirect("/", {
+    headers: response.headers,
+  });
+}
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await auth.api.getSession({ headers: request.headers });
@@ -29,7 +44,7 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
 
   return (
     <main className="max-w-80 mx-auto grid gap-6 pt-16 pb-4">
-      <h1 className="text-5xl font-black">Dashboard</h1>
+      <h1 className="text-5xl font-black">Movie Seat Tracker</h1>
 
       <h2 className="font-bold text-3xl">Your theaters:</h2>
       {theaters.length === 0 && <p>No theaters saved yet</p>}
@@ -55,6 +70,10 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
           <PlusIcon /> New seat
         </Link>
       </Button>
+
+      <Form method="post">
+        <Button type="submit">Sign out</Button>
+      </Form>
     </main>
   );
 }

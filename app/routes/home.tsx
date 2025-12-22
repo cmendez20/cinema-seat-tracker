@@ -23,19 +23,25 @@ export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
   const email = formData.get("email");
   const password = formData.get("password");
+  console.log(password);
 
-  const data = await auth.api.signInEmail({
+  const response = await auth.api.signInEmail({
     body: {
       email: email as string, // required
       password: password as string, // required
       rememberMe: true,
       callbackURL: "/dashboard",
     },
-    // headers: request.headers,
     asResponse: true,
   });
 
-  return redirect("/dashboard");
+  if (!response.ok) {
+    return response;
+  }
+
+  return redirect("/dashboard", {
+    headers: response.headers,
+  });
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

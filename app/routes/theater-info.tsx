@@ -35,6 +35,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
       seatId: record.seat.id,
       theaterName: record.theater.theaterName,
       auditoriumNumber: record.seat.auditoriumNumber,
+      screenType: record.seat.screenType,
       seatRow: record.seat.row,
       seatNumber: record.seat.seatNumber,
       seatDescription: record.seat.description,
@@ -49,7 +50,7 @@ export default function TheaterInfo({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="max-w-80 mx-auto pt-16 pb-4">
-      <div className="flex items-center gap-6 mb-6">
+      <div className="flex items-center gap-6 mb-6 max-w-72">
         <Button
           asChild
           size="icon"
@@ -69,7 +70,7 @@ export default function TheaterInfo({ loaderData }: Route.ComponentProps) {
         {savedSeats.map((seatInfo) => {
           return (
             <div key={seatInfo.seatId} className="bg-slate-100 rounded-xl">
-              <div className="flex justify-between p-6">
+              <div className="flex p-6 flex-wrap gap-x-12 gap-y-8">
                 <div>
                   <p className="font-semibold text-xl">AUDITORIUM</p>
                   <p className="text-lg">{seatInfo.auditoriumNumber}</p>
@@ -80,6 +81,10 @@ export default function TheaterInfo({ loaderData }: Route.ComponentProps) {
                     {seatInfo.seatRow}
                     {seatInfo.seatNumber}
                   </p>
+                </div>
+                <div>
+                  <p className="font-semibold text-xl">Screen Type</p>
+                  <p className="text-lg">{seatInfo.screenType}</p>
                 </div>
               </div>
               <p className="px-6 pb-6 text-pretty">
